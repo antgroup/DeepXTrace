@@ -22,6 +22,12 @@ import time
 import uuid
 import os
 import torch
+# better to add following code after import torch
+try:
+    import torch_npu
+    from torch_npu.contrib import transfer_to_npu
+except ImportError:
+    torch_npu = None
 import logging
 import torch.distributed as dist
 import numpy as np
