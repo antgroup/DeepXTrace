@@ -5,6 +5,22 @@ on:
   pull_request:
 
 jobs:
+  autopep8-format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install autopep8
+        run: pip install autopep8
+
+      - name: Run autopep8 check
+        run: autopep8 --recursive --diff . --exit-code
   test:
     runs-on: ubuntu-latest
 

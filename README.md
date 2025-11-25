@@ -4,20 +4,20 @@ DeepXTrace is a lightweight system tool designed to efficiently and precisely lo
 
 DeepXTrace supports diagnosis of various slowdown scenarios, including:
 
-* 1. Slowdown caused by the destination rank.
-* 2. Slowdown caused by the source rank.
-* 3. Slowdown caused by the communication path between specific source and destination ranks.
+* *Comp-Slow*: Slowdown caused by the destination rank(e.g., GPU/CPU compute latency).
+* *Mixed-Slow*: Slowdown caused by the source rank(e.g., uneven expert distribution or hotspot congestion).
+* *Comm-Slow*: Slowdown caused by the communication path between specific source and destination ranks(e.g., communication link issues).
 
 
 ![slow](figures/slow.png)
 
-DeepXTrace automatically collects communication diagnostic metrics for Dispatch/Combine operators across all ranks, while constructing an `N×N` latency matrix `M` on `Rank 0` based on aggregated metrics (where `Mij` represents the delay of `rank_i` waiting for `rank_j`). In the `EP16` scenario, the matrix is categorized by latency magnitude through color gradients, visually revealing a positive correlation between latency data and communication topology, with red > yellow > green indicating increasing latency levels.
+DeepXTrace automatically collects communication diagnostic metrics for Dispatch/Combine operators across all ranks, while constructing a latency matrix `M` of size `N×N` on `Rank 0` from aggregated metrics (where `Mij` represents the delay of `rank_i` waiting for `rank_j`). In the `EP16` scenario, the matrix is color-coded according to latency magnitude, and the visualization reveals a positive correlation between latency and communication topology, where color gradients (green → yellow → red) indicate ascending latency levels.
 
-The following figure shows the latency matrix for the Dispatch operator's token reception delays across ranks. The relatively high values in the column for `Rank 4` indicate a computational delay issue in `Rank 4`.
+The following figure shows the latency matrix for the Dispatch operator's token reception delays across ranks. The elevated values in Rank 4's column suggest a computational bottleneck on `Rank 4`.
 
 ![dispatch](figures/dispatch.png)
 
-The following figure shows the latency matrix for the Combine operator's token reception delays across ranks. No anomalous columns, rows, or points are observed, indicating that the Combine communication operator did not exhibit anomalies during this diagnostic cycle.
+The following figure shows the latency matrix for the Combine operator's token reception delays across ranks. No anomalies in columns, rows, or individual data points were detected, confirming the absence of anomalies in the Combine operator's communication throughout the monitoring period.
 
 ![combine](figures/combine.png)
 

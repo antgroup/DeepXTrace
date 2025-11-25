@@ -21,6 +21,7 @@ import threading
 import time
 import uuid
 import os
+import sched
 import torch
 # better to add following code after import torch
 try:
@@ -109,12 +110,14 @@ class Diagnose:
     Environment variables:
         DEEPEP_DIAGNOSE_ENABLE: determine diagnose enable switch from environment variable. Default 1.
         DEEPEP_DIAGNOSE_INTERVAL: controls the diagnose cycle period in seconds. Default 20.
+        DEEPEP_DIAGNOSE_WARMING_TIME: controls the diagnose start warming up time. Default same as 'DEEPEP_DIAGNOSE_INTERVAL'.
         DEEPEP_DIAGNOSE_SYNC_STEP: controls the diagnose step counter. Default: 580.
         DEEPEP_DIAGNOSE_LOG_PATH: set the output file path for diagnose logs. Default ".".
         DEEPEP_DIAGNOSE_LOG_DETAILS: determine output the diagnose details info. Default "0".
         DEEPEP_DIAGNOSE_THRESHOLD_COL: determine threshold for abnormal columns. Default 3.0.
         DEEPEP_DIAGNOSE_THRESHOLD_ROW: determine threshold for abnormal rows. Default 3.0.
         DEEPEP_DIAGNOSE_THRESHOLD_POINT: determine threshold for abnormal individual points. Default 5.0.
+        DEEPEP_DIAGNOSE_EXCLUDING_ZEROS: controls whether excluding zeros in diagnose_matrix. Default 0.
 
     """
 
@@ -159,6 +162,8 @@ class Diagnose:
             os.getenv(
                 "DEEPEP_DIAGNOSE_THRESHOLD_POINT",
                 5.0))
+        self.excluding_zeros = int(
+            os.getenv("DEEPEP_DIAGNOSE_EXCLUDING_ZEROS", 0))
 
         # Initialize the diagnose
         self.group = group
@@ -169,6 +174,11 @@ class Diagnose:
         self.enable_async = enable_async
         # Controls the diagnose cycle period in seconds. Default: 20
         self.interval = int(os.getenv("DEEPEP_DIAGNOSE_INTERVAL", interval))
+        # Controls the diagnose warming up time. Default: same as interval
+        self.warm_time = int(
+            os.getenv(
+                "DEEPEP_DIAGNOSE_WARMING_TIME",
+                self.interval))
         # Controls the diagnose step counter. Default: 580
         self.sync_step = np.uint64(os.getenv("DEEPEP_DIAGNOSE_SYNC_STEP", 580))
         self.stop_diagnose = threading.Event()
@@ -299,7 +309,7 @@ class Diagnose:
     @staticmethod
     def diagnose_matrix(
         mat, thres_col=3.0, thres_row=3.0, thres_point=5.0,
-        suppress_points_in_strong_rowscols=True
+        suppress_points_in_strong_rowscols=True, excluding_zeros=0
     ):
         """
         Detect abnormal columns, rows, and individual points in a 2D wait-time matrix.
@@ -337,8 +347,17 @@ class Diagnose:
         ]
 
         # 3. Check for abnormal single points
-        # z_all = (mat - mat.mean()) / (mat.std() + 1e-8)
-        z_all = mat / (mat.mean() + 1e-8)
+        if excluding_zeros == 0:
+            # z_all = (mat - mat.mean()) / (mat.std() + 1e-8)
+            z_all = mat / (mat.mean() + 1e-8)
+        elif excluding_zeros == 1:
+            nonzero_values = mat[mat != 0]
+            if len(nonzero_values) > 0:
+                mean_val = nonzero_values.mean()
+                z_all = mat / (mean_val + 1e-8)
+            else:
+                z_all = mat
+
         # Get all positions with z-score > threshold
         abnormal_points = [
             [i, j, mat[i, j], z_all[i, j]]
@@ -355,6 +374,7 @@ class Diagnose:
                 [i, j, v, z] for [i, j, v, z] in abnormal_points
                 if i not in strong_rows and j not in strong_cols
             ]
+
         # 4. Return for automatic processing
         return {
             "abnormal_cols": abnormal_cols,
@@ -373,27 +393,35 @@ class Diagnose:
         self.normal_combine_wait_recv_cost_stats.zero_()
 
     def _diagnose_internal(self):
-        while not self.stop_diagnose.is_set():
-            time.sleep(self.interval)
+        scheduler = sched.scheduler(time.time, time.sleep)
+
+        def run_diagnose():
             try:
                 if self.enable_ll_diagnose:
                     self._gather_diagnose_stats_internal(
-                        [self.ll_dispatch_wait_recv_cost_stats, self.ll_combine_wait_recv_cost_stats])
-                    # Make LL dispatch/combine stats tensor zero
+                        [self.ll_dispatch_wait_recv_cost_stats,
+                         self.ll_combine_wait_recv_cost_stats])
                     self._reset_ll_stats()
 
                 if self.enable_normal_diagnose:
                     self._gather_diagnose_stats_internal(
-                        [
-                            self.normal_dispatch_wait_recv_cost_stats,
-                            self.normal_combine_wait_recv_cost_stats])
-                    # Make normal dispatch/combine stats tensor zero
+                        [self.normal_dispatch_wait_recv_cost_stats,
+                         self.normal_combine_wait_recv_cost_stats])
                     self._reset_normal_stats()
+
             except Exception as e:
                 self.logger.info(
-                    f"[Diagnose] InstanceID: {self.instance_id} EPSize: {self.group_size} Rank: {self.rank} deepep/dist error: {e}, diagnose thread exit.")
+                    f"[Diagnose] InstanceID: {self.instance_id} EPSize: {self.group_size} Rank: {self.rank} dist error: {e}, diagnose thread exit.")
                 logging.shutdown()
-                break
+                return
+
+            if not self.stop_diagnose.is_set():
+                scheduler.enter(self.interval, 0, run_diagnose)
+
+        # Wait for the main program to warm up, such as inference engine JIT or
+        # graph pattern compilation time.
+        scheduler.enter(self.warm_time, 0, run_diagnose)
+        scheduler.run()
 
     def _gather_diagnose_stats_internal(
             self, stats_list) -> List[Dict[str, Any]]:
@@ -421,7 +449,7 @@ class Diagnose:
                 stats_arr = torch.stack(self.gather_tensor, dim=0).numpy()
             for i, name in enumerate(["Dispatch", "Combine"]):
                 res = Diagnose.diagnose_matrix(
-                    stats_arr[:, i, :], thres_col=self.thres_col, thres_row=self.thres_row, thres_point=self.thres_point)
+                    stats_arr[:, i, :], thres_col=self.thres_col, thres_row=self.thres_row, thres_point=self.thres_point, excluding_zeros=self.excluding_zeros)
                 results.append(res)
                 self.logger.info(
                     f"[Diagnose] InstanceID: {self.instance_id} EPSize: {self.group_size}, diagnose: {res}, {name} Wait Recv Cost Per Token Matrix[src_rank, dst_rank]")
