@@ -108,7 +108,7 @@ class Diagnose:
 
     Environment variables:
         DEEPEP_DIAGNOSE_ENABLE: determine diagnose enable switch from environment variable. Default 1.
-        DEEPEP_DIAGNOSE_INTERVAL: controls the diagnose cycle period in seconds. Default 10.
+        DEEPEP_DIAGNOSE_INTERVAL: controls the diagnose cycle period in seconds. Default 20.
         DEEPEP_DIAGNOSE_SYNC_STEP: controls the diagnose step counter. Default: 580.
         DEEPEP_DIAGNOSE_LOG_PATH: set the output file path for diagnose logs. Default ".".
         DEEPEP_DIAGNOSE_LOG_DETAILS: determine output the diagnose details info. Default "0".
@@ -121,7 +121,7 @@ class Diagnose:
     def __init__(
             self,
             group: dist.ProcessGroup,
-            interval: int = 10,
+            interval: int = 20,
             enable_ll_diagnose: bool = True,
             enable_normal_diagnose: bool = False,
             enable_async: bool = False) -> None:
@@ -130,7 +130,7 @@ class Diagnose:
 
         Arguments:
             group: the communication group(i.e., the EP communication group).
-            interval: diagnose interval. Default 10.
+            interval: diagnose interval. Default 20.
             enable_ll_diagnose: enable low latency mode diagnose. Default `True`.
             enable_normal_diagnose: enable normal mode diagnose. Default `False`.
             enable_async: enable async diagnose mode. Default `False`.
@@ -167,9 +167,9 @@ class Diagnose:
         self.enable_ll_diagnose = enable_ll_diagnose and enable_diagnose
         self.enable_normal_diagnose = enable_normal_diagnose and enable_diagnose
         self.enable_async = enable_async
-        # Controls the diagnose cycle period in seconds. Default: 10
+        # Controls the diagnose cycle period in seconds. Default: 20
         self.interval = int(os.getenv("DEEPEP_DIAGNOSE_INTERVAL", interval))
-        # Controls the diagnose step counter. Default: 100
+        # Controls the diagnose step counter. Default: 580
         self.sync_step = np.uint64(os.getenv("DEEPEP_DIAGNOSE_SYNC_STEP", 580))
         self.stop_diagnose = threading.Event()
 
@@ -441,7 +441,7 @@ class Diagnose:
 
         Notes:
         In synchronous (sync) mode, **all ranks in the EP domain must call this
-        function at the same code location (for example, once every 100 steps)**.
+        function at the same code location (for example, once every 580 steps)**.
         Failing to do so can result in deadlocks or hangs due to distributed synchronization.
 
         Returns:
@@ -476,7 +476,7 @@ class Diagnose:
 
         Notes:
         In synchronous (sync) mode, **all ranks in the EP domain must call this
-        function at the same code location (for example, once every 100 steps)**.
+        function at the same code location (for example, once every 580 steps)**.
         Failing to do so can result in deadlocks or hangs due to distributed synchronization.
 
         Returns:
