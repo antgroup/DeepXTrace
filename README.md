@@ -29,6 +29,13 @@ A low-overhead module for measuring critical diagnostic indicators during DeepEP
 
 An analysis module that locates the slow rank issues by processing the collected metrics.
 
+##  ！！！Ascend NPU support DeepXTrace NOW！！！
+Ascend MOE ops dispatch&combine support metrics probe. See PR 
+(https://gitcode.com/cann/ops-transformer/pull/288).
+
+A practical case study based on Ascend and DeepXTrace can be found at the link.
+https://mp.weixin.qq.com/s/AaZ3pgM-brWw8-DMxS54Wg
+
 ### Build
 ```shell
 python setup.py bdist_wheel
