@@ -1,6 +1,6 @@
 # DeepXTrace
 
-DeepXTrace is a lightweight diagnostic tool designed to efficiently and precisely locate slow ranks in MoE-based distributed environments through instrumentation of communication libraries(e.g., [DeepEP for GPU](https://github.com/deepseek-ai/DeepEP),[MC2 for NPU](https://gitcode.com/cann/ops-transformer)). It is composed of two core components: *MoE COMM Metrics Probe* and *DeepXTrace Metrics Analysis*.
+DeepXTrace is a lightweight diagnostic tool designed to efficiently and precisely locate slow ranks in MoE-based distributed environments through instrumentation of communication libraries (e.g., [DeepEP for GPU](https://github.com/deepseek-ai/DeepEP), [MC2 for NPU](https://gitcode.com/cann/ops-transformer)). It is composed of two core components: *MoE COMM Metrics Probe* and *DeepXTrace Metrics Analysis*.
 
 DeepXTrace supports diagnosis of various slowdown scenarios, including:
 
