@@ -1,10 +1,10 @@
 # DeepXTrace
 
-DeepXTrace is a lightweight system tool designed to efficiently and precisely locate slow ranks in DeepEP-based environments by enhancing the [DeepEP](https://github.com/deepseek-ai/DeepEP) communication library. It is composed of two core components: *DeepEP Metrics Probe* and *DeepXTrace Metrics Analysis*.
+DeepXTrace is a lightweight diagnostic tool designed to efficiently and precisely locate slow ranks in MoE-based distributed environments through instrumentation of communication libraries(e.g., [DeepEP for GPU](https://github.com/deepseek-ai/DeepEP),[MC2 for NPU](https://gitcode.com/cann/ops-transformer)). It is composed of two core components: *MoE COMM Metrics Probe* and *DeepXTrace Metrics Analysis*.
 
 DeepXTrace supports diagnosis of various slowdown scenarios, including:
 
-* *Comp-Slow*: Slowdown caused by the destination rank(e.g., GPU/CPU compute latency).
+* *Comp-Slow*: Slowdown caused by the destination rank(e.g., xPU compute latency).
 * *Mixed-Slow*: Slowdown caused by the source rank(e.g., uneven expert distribution or hotspot congestion).
 * *Comm-Slow*: Slowdown caused by the communication path between specific source and destination ranks(e.g., communication link issues).
 
@@ -21,13 +21,15 @@ The following figure shows the latency matrix for the Combine operator's token r
 
 ![combine](figures/combine.png)
 
-##  DeepEP-Metrics-Probe
+##  MoE-COMM-Metrics-Probe
 
-A low-overhead module for measuring critical diagnostic indicators during DeepEP communication. See also: [DeepEP Diagnose PR](https://github.com/deepseek-ai/DeepEP/pull/311).
+A low-overhead module for measuring critical diagnostic indicators during MoE communication. Supported Implementations:
+   - **DeepEP (GPU)**: Integrated metrics probe via [DeepEP Diagnose PR #311](https://github.com/deepseek-ai/DeepEP/pull/311)
+   - **MC2 (NPU)**: Native instrumentation through [MC2 Diagnose PR #288](https://gitcode.com/cann/ops-transformer/pull/288). See also [Ascend and DeepXTrace Blog](https://mp.weixin.qq.com/s/AaZ3pgM-brWw8-DMxS54Wg)
 
 ## DeepXTrace-Metrics-Analysis
 
-An analysis module that locates the slow rank issues by processing the collected metrics.
+A cross-platform analysis module that identifies slow-rank bottlenecks across GPU/NPU clusters through metric processing.
 
 ### Build
 ```shell
