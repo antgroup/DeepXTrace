@@ -4,7 +4,7 @@ DeepXTrace is a lightweight diagnostic tool designed to efficiently and precisel
 
 DeepXTrace supports diagnosis of various slowdown scenarios, including:
 
-* *Comp-Slow*: Slowdown caused by the destination rank(e.g., xPU compute latency).
+* *Comp-Slow*: Slowdown caused by the destination rank (e.g., xPU compute latency).
 * *Mixed-Slow*: Slowdown caused by the source rank(e.g., uneven expert distribution or hotspot congestion).
 * *Comm-Slow*: Slowdown caused by the communication path between specific source and destination ranks(e.g., communication link issues).
 
