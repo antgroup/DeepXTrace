@@ -4,9 +4,9 @@ DeepXTrace is a lightweight diagnostic tool designed to efficiently and precisel
 
 DeepXTrace supports diagnosis of various slowdown scenarios, including:
 
-* *Comp-Slow*: Slowdown caused by sender-side issues, such as uneven computation (e.g., Attention/MoE) delays send communication operators.
-* *Mixed-Slow*: Slowdown caused by receiver-side issues, such as uneven computation (e.g., Attention/MoE) triggers early recv communication operators on GPUs, or hotspot experts cause network Incast.
-* *Comm-Slow*: Slowdown caused by the communication path between the sender and receiver(e.g., communication link issues).
+* *Comp-Slow*: Slowdown caused by sender-side issues, such as uneven computation (e.g., Attention/MoE) that delays `send` communication operators.
+* *Mixed-Slow*: Slowdown caused by receiver-side issues, such as uneven computation (e.g., Attention/MoE) that triggers early `recv` communication operators on GPUs, or hotspot experts that cause network Incast.
+* *Comm-Slow*: Slowdown caused by the communication path between the sender and receiver (e.g., communication link issues).
 
 
 ![slow](figures/slow.png)
