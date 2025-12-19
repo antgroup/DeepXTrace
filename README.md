@@ -4,9 +4,9 @@ DeepXTrace is a lightweight diagnostic tool designed to efficiently and precisel
 
 DeepXTrace supports diagnosis of various slowdown scenarios, including:
 
-* *Comp-Slow*: Slowdown caused by the destination rank (e.g., xPU compute latency).
-* *Mixed-Slow*: Slowdown caused by the source rank(e.g., uneven expert distribution or hotspot congestion).
-* *Comm-Slow*: Slowdown caused by the communication path between specific source and destination ranks(e.g., communication link issues).
+* *Comp-Slow*: Slowdown caused by sender-side issues, such as uneven computation (e.g., Attention/MoE) delays send communication operators.
+* *Mixed-Slow*: Slowdown caused by receiver-side issues, such as uneven computation (e.g., Attention/MoE) triggers early recv communication operators on GPUs, or hotspot experts cause network Incast.
+* *Comm-Slow*: Slowdown caused by the communication path between the sender and receiver(e.g., communication link issues).
 
 
 ![slow](figures/slow.png)
@@ -20,6 +20,8 @@ The following figure shows the latency matrix for the Dispatch operator's token 
 The following figure shows the latency matrix for the Combine operator's token reception delays across ranks. No anomalies in columns, rows, or individual data points were detected, confirming the absence of anomalies in the Combine operator's communication throughout the monitoring period.
 
 ![combine](figures/combine.png)
+
+For performance analysis, use the **[DeepXTrace Heatmap Visualization Tool](tools/README.md)** to visualize communication bottlenecks.
 
 ##  MoE-COMM-Metrics-Probe
 
