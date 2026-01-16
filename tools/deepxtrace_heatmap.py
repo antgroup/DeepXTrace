@@ -11,12 +11,14 @@ from datetime import datetime
 def create_optimized_ryg_cmap():
     """Create an optimized Red-Yellow-Green colormap (6-color scale)"""
     colors = [
-        (0.0, "#63BE7B"),  # Green
-        (0.3, "#A8D08D"),  # Green to Yellow-Green
-        (0.5, "#FFEB84"),  # Center Yellow
-        (0.7, "#F4B084"),  # Yellow to Orange
-        (0.9, "#FF7C7C"),  # Light Red
-        (1.0, "#C00000")   # Red
+        (0.00, "#4CAF50"),   # Green
+        (0.15, "#81C784"),   # Light Green
+        (0.30, "#AED581"),   # Green-Yellow
+        (0.45, "#FFF176"),   # Light Yellow
+        (0.55, "#FFD54F"),   # Yellow
+        (0.70, "#FFB74D"),   # Yellow-Orange
+        (0.85, "#FF8A65"),   # Light Red
+        (1.00, "#E53935")    # Red
     ]
     return LinearSegmentedColormap.from_list("optimized_ryg", colors)
 
